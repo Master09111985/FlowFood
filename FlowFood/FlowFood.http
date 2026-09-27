@@ -1,0 +1,6 @@
+@FlowFood_HostAddress = http://localhost:5048
+
+GET {{FlowFood_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
