@@ -27,9 +27,22 @@ namespace FlowFood.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetEmpleados()
         {
-            var listaEmpleados = await _empRepo.GetEmpleadosAsync();
-            var listaDto = listaEmpleados.Select(MapearEmpleadoDto).ToList();
-            return Ok(listaDto);
+            try
+            {
+                var listaEmpleados = await _empRepo.GetEmpleadosAsync();
+                var listaDto = listaEmpleados.Select(MapearEmpleadoDto).ToList();
+                return Ok(listaDto);
+            }
+            catch (Exception ex)
+            {
+                // Esto capturará el error exacto (ej. "Invalid column name", "SqlDateTime overflow", etc.)
+                return StatusCode(500, new
+                {
+                    MensajePrincipal = ex.Message,
+                    DetalleInterno = ex.InnerException?.Message,
+                    Pista = "El error está al intentar leer los datos de la base de datos en Somee."
+                });
+            }
         }
 
         // GET: flowfood/Empleado/Buscar/{id}

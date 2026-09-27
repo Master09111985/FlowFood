@@ -1,3 +1,4 @@
+using CloudinaryDotNet;
 using FlowFood.Data;
 using FlowFood.Repositorio;
 using FlowFood.Repositorio.IRepositorio;
@@ -70,6 +71,17 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Para leer las credenciales de Cloudinary
+var account = new Account(
+    builder.Configuration["CloudinarySettings:CloudName"],
+    builder.Configuration["CloudinarySettings:ApiKey"],
+    builder.Configuration["CloudinarySettings:ApiSecret"]
+);
+
+// Crear la instancia y registrarla en el contenedor de dependencias
+var cloudinary = new Cloudinary(account);
+builder.Services.AddSingleton(cloudinary);
 
 var app = builder.Build();
 
