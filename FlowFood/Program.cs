@@ -53,8 +53,10 @@ builder.Services.AddCors(options =>
     policy.WithOrigins(
             "http://localhost:4200",   // ng serve por defecto
             "https://localhost:4200",
-            "https://CamaronServer:9001",
-            "https://camaronserver:9001"
+            "https://CamaronServer:9001",  // Servidor local de LosDeCamaron
+            "https://camaronserver:9001",
+            "https://losdecamaron-37e07.firebaseapp.com",
+            "https://losdecamaron-37e07.web.app"
           )
           .AllowAnyHeader()
           .AllowAnyMethod();
