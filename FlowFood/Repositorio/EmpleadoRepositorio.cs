@@ -74,15 +74,21 @@ namespace FlowFood.Repositorio
 
     public async Task<bool> ActualizarEmpleadoAsync(Empleado empleado)
     {
-      var empleadoExistente = await _context.Empleados.AsNoTracking().FirstOrDefaultAsync(e => e.Id == empleado.Id);
-      if (empleadoExistente != null)
-        _context.Entry(empleadoExistente).CurrentValues.SetValues(empleado);
-      else
-        _context.Empleados.Update(empleado);
-      return await GuardarAsync();
+        var empleadoExistente = await _context.Empleados.FirstOrDefaultAsync(e => e.Id == empleado.Id);
+
+        if (empleadoExistente != null)
+        {
+            _context.Entry(empleadoExistente).CurrentValues.SetValues(empleado);
+        }
+        else
+        {
+            _context.Empleados.Update(empleado);
+        }
+
+        return await GuardarAsync();
     }
 
-    public async Task<bool> BorrarEmpleadoAsync(Empleado empleado)
+        public async Task<bool> BorrarEmpleadoAsync(Empleado empleado)
     {
       _context.Empleados.Remove(empleado);
       return await GuardarAsync();

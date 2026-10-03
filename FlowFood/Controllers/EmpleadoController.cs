@@ -283,6 +283,7 @@ namespace FlowFood.Controllers
         }
 
         // Extrae el PublicId necesario para borrar (ejemplo: "empleados/imagen123")
+        // Reemplaza tu método ExtraerPublicId actual por este:
         private string? ExtraerPublicId(string? url)
         {
             if (string.IsNullOrEmpty(url) || !url.Contains("cloudinary.com"))
@@ -292,14 +293,25 @@ namespace FlowFood.Controllers
             {
                 var uri = new Uri(url);
                 var segments = uri.AbsolutePath.Split('/');
-                // Encuentra dónde empieza la carpeta o archivo ignorando versiones (v1234567)
-                var index = Array.FindIndex(segments, s => s.StartsWith("v") && long.TryParse(s[1..], out _));
-                if (index != -1 && index + 1 < segments.Length)
+
+                // Buscamos el índice donde se encuentra "upload"
+                var uploadIndex = Array.FindIndex(segments, s => s.Equals("upload", StringComparison.OrdinalIgnoreCase));
+                if (uploadIndex == -1 || uploadIndex + 1 >= segments.Length)
+                    return null;
+
+                // Los segmentos después de "upload" pueden incluir opcionalmente la versión (ej. v123456)
+                var startIndex = uploadIndex + 1;
+                if (segments[startIndex].StartsWith("v") && long.TryParse(segments[startIndex][1..], out _))
                 {
-                    var pathWithExt = string.Join("/", segments.Skip(index + 1));
-                    return Path.ChangeExtension(pathWithExt, null);
+                    startIndex++; // Saltamos la versión si existe
                 }
-                return null;
+
+                if (startIndex >= segments.Length)
+                    return null;
+
+                // Unimos lo que resta y removemos la extensión del archivo (.jpg, .png, etc.)
+                var publicIdWithExt = string.Join("/", segments.Skip(startIndex));
+                return Path.ChangeExtension(publicIdWithExt, null);
             }
             catch
             {

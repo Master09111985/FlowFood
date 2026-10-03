@@ -28,7 +28,6 @@ namespace FlowFood.Models.Dtos
     [Required(ErrorMessage = "El puesto es obligatorio")]
     public int PuestoId { get; set; }
 
-    [Required(ErrorMessage = "La foto es obligatoria")]
     public IFormFile Foto { get; set; }
 
     // Codigo, FechaRegistro, Estado y FotoUrl NO se piden al cliente:
