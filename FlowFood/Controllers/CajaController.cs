@@ -171,28 +171,20 @@ namespace FlowFood.Controllers
             if (supervisor == null)
                 return Unauthorized("Credenciales de supervisor inválidas.");
 
-            // Obtener todos los movimientos del turno
+            // Obtener todos los movimientos del turno y el catálogo de métodos de pago desde CajaRepo
             var movimientos = await _cajaRepo.ObtenerMovimientosTurnoAsync(turno.Id);
+            var metodosPago = await _cajaRepo.ObtenerMetodosPagoAsync();
+
+            int idEfectivo = metodosPago.FirstOrDefault(mp => mp.Nombre.Contains("efectivo", StringComparison.OrdinalIgnoreCase))?.Id ?? 1;
+            int idTarjeta = metodosPago.FirstOrDefault(mp => mp.Nombre.Contains("tarjeta", StringComparison.OrdinalIgnoreCase))?.Id ?? 2;
+            int idTransferencia = metodosPago.FirstOrDefault(mp => mp.Nombre.Contains("transferencia", StringComparison.OrdinalIgnoreCase))?.Id ?? 3;
+
             var entradas = movimientos.Where(m => m.TipoMovimiento == 1).ToList();
 
-            // Desglose por método de pago (por nombre del método o por ID por defecto: 1=Efectivo, 2=Tarjeta, 3=Transferencia)
-            decimal ventasEfectivo = entradas
-                .Where(m => m.MetodoPago != null
-                    ? m.MetodoPago.Nombre.Contains("efectivo", StringComparison.OrdinalIgnoreCase)
-                    : m.MetodoPagoId == 1)
-                .Sum(m => m.Monto);
-
-            decimal ventasTarjeta = entradas
-                .Where(m => m.MetodoPago != null
-                    ? m.MetodoPago.Nombre.Contains("tarjeta", StringComparison.OrdinalIgnoreCase)
-                    : m.MetodoPagoId == 2)
-                .Sum(m => m.Monto);
-
-            decimal ventasTransferencia = entradas
-                .Where(m => m.MetodoPago != null
-                    ? m.MetodoPago.Nombre.Contains("transferencia", StringComparison.OrdinalIgnoreCase)
-                    : m.MetodoPagoId == 3)
-                .Sum(m => m.Monto);
+            // Cálculos desglosados por Método de Pago usando MetodoPagoId
+            decimal ventasEfectivo = entradas.Where(m => m.MetodoPagoId == idEfectivo).Sum(m => m.Monto);
+            decimal ventasTarjeta = entradas.Where(m => m.MetodoPagoId == idTarjeta).Sum(m => m.Monto);
+            decimal ventasTransferencia = entradas.Where(m => m.MetodoPagoId == idTransferencia).Sum(m => m.Monto);
 
             decimal totalVentasGeneral = ventasEfectivo + ventasTarjeta + ventasTransferencia;
             decimal salidasProveedores = movimientos.Where(m => m.TipoMovimiento == 2).Sum(m => m.Monto);

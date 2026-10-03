@@ -46,10 +46,14 @@ namespace FlowFood.Repositorio
         public async Task<IEnumerable<MovimientoCaja>> ObtenerMovimientosTurnoAsync(int turnoId)
         {
             return await _context.MovimientosCaja
-                .Include(m => m.MetodoPago)
                 .Where(m => m.CajaTurnoId == turnoId)
                 .OrderBy(m => m.Fecha)
                 .ToListAsync();
+        }
+
+        public async Task<IEnumerable<MetodoPago>> ObtenerMetodosPagoAsync()
+        {
+            return await _context.MetodosPago.ToListAsync();
         }
 
         public async Task<Usuario> AutenticarSupervisorAsync(string nombreUsuario, string password)
@@ -61,11 +65,7 @@ namespace FlowFood.Repositorio
 
             if (usuarioDb == null) return null;
 
-            // Aquí deberías usar tu lógica de desencriptación/bcrypt que usas en el Login normal
-            // Si la contraseña coincide y su rol es apto (ej. Rol "Administrador" o ID 1), lo devuelves
-            // if (!BCrypt.Net.BCrypt.Verify(password, usuarioDb.Password)) return null;
-
-            // Verifica que tenga permisos de supervisor (Ajusta la validación de Rol según tu base de datos)
+            // Verifica que tenga permisos de supervisor
             if (usuarioDb.Rol.Nombre != "Administrador" && usuarioDb.Rol.Nombre != "Supervisor")
                 return null;
 
