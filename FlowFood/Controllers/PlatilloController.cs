@@ -188,7 +188,6 @@ namespace FlowFood.Controllers
 
         [HttpDelete("Eliminar/{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -199,10 +198,19 @@ namespace FlowFood.Controllers
 
             var platilloAEliminar = await _platRepo.GetPlatilloAsync(id);
 
-            if (!await _platRepo.BorrarPlatilloAsync(platilloAEliminar))
+            try
             {
-                ModelState.AddModelError("", $"Algo salió mal borrando el registro de {platilloAEliminar.Nombre}");
-                return StatusCode(500, ModelState);
+                if (!await _platRepo.BorrarPlatilloAsync(platilloAEliminar))
+                {
+                    ModelState.AddModelError("", $"Algo salió mal borrando el registro de {platilloAEliminar.Nombre}");
+                    return StatusCode(500, ModelState);
+                }
+            }
+            catch (Exception)
+            {
+                // Si el platillo ya está en una comanda, SQL Server impide borrarlo físicamente
+                ModelState.AddModelError("", $"No se puede eliminar '{platilloAEliminar.Nombre}' porque ya tiene historial en comandas. Cámbialo a estado Inactivo.");
+                return StatusCode(400, ModelState);
             }
 
             // Borrar de Cloudinary usando su URL

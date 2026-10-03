@@ -40,24 +40,26 @@ namespace FlowFood.Repositorio
       return await _context.Platillos.AnyAsync(p => p.Codigo.Trim() == codigo.Trim());
     }
 
-    // Generacion del codigo consecutivo
+        // Generacion del codigo consecutivo
     public async Task<string> GenerarSiguienteCodigoAsync()
     {
-      var ultimoPlatillo = await _context.Platillos
-          .OrderByDescending(p => p.Id)
-          .FirstOrDefaultAsync();
+        var ultimoPlatillo = await _context.Platillos
+            .OrderByDescending(p => p.Id)
+            .FirstOrDefaultAsync();
 
-      if (ultimoPlatillo == null)
-        return "PLA00001";
+        if (ultimoPlatillo == null || string.IsNullOrEmpty(ultimoPlatillo.Codigo))
+            return "PLA00001";
 
-      var numeroActual = int.Parse(ultimoPlatillo.Codigo.Substring(3));
-      var siguienteNumero = numeroActual + 1;
+        // Extrae únicamente los dígitos del código sin importar si lleva guion o no
+        var soloNumeros = new string(ultimoPlatillo.Codigo.Where(char.IsDigit).ToArray());
+        var numeroActual = int.TryParse(soloNumeros, out int num) ? num : ultimoPlatillo.Id;
+        var siguienteNumero = numeroActual + 1;
 
-      return $"PLA{siguienteNumero:D5}";
+        return $"PLA{siguienteNumero:D5}";
     }
 
-    // Para el CRUD
-    public async Task<bool> CrearPlatilloAsync(Platillo platillo)
+        // Para el CRUD
+        public async Task<bool> CrearPlatilloAsync(Platillo platillo)
     {
       _context.Platillos.Add(platillo);
       return await GuardarAsync();
