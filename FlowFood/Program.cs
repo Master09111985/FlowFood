@@ -4,6 +4,8 @@ using FlowFood.Repositorio;
 using FlowFood.Repositorio.IRepositorio;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+// AGREGADO: Librería necesaria para configurar el JSON
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. DbContext - SQL Server
 // ==============================
 builder.Services.AddDbContext<DataContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString(/*"FlowFoodConnection"*/"FlowFoodCloud"))
+    options.UseSqlServer(builder.Configuration.GetConnectionString("FlowFoodCloud"))
            .LogTo(Console.WriteLine, LogLevel.Information)
            .EnableSensitiveDataLogging());
 
@@ -22,7 +24,7 @@ builder.Services.AddDbContext<DataContext>(options =>
 builder.Services.AddScoped<IAlmacenRepositorio, AlmacenRepositorio>();
 builder.Services.AddScoped<IAsistenciaRepositorio, AsistenciaRepositorio>();
 builder.Services.AddScoped<IBajaRepositorio, BajaRepositorio>();
-builder.Services.AddScoped<ICajaRepositorio,  CajaRepositorio>();
+builder.Services.AddScoped<ICajaRepositorio, CajaRepositorio>();
 builder.Services.AddScoped<ICategoriaRepositorio, CategoriaRepositorio>();
 builder.Services.AddScoped<IClienteRepositorio, ClienteRepositorio>();
 builder.Services.AddScoped<IComandaRepositorio, ComandaRepositorio>();
@@ -49,25 +51,37 @@ const string PoliticaAngular = "PoliticaAngular";
 
 builder.Services.AddCors(options =>
 {
-  options.AddPolicy(name: PoliticaAngular, policy =>
-  {
-    policy.WithOrigins(
-            "http://localhost:4200",   // ng serve por defecto
-            "https://localhost:4200",
-            "https://CamaronServer:9001",  // Servidor local de LosDeCamaron
-            "https://camaronserver:9001",
-            "https://losdecamaron-37e07.firebaseapp.com",
-            "https://losdecamaron-37e07.web.app"
-          )
-          .AllowAnyHeader()
-          .AllowAnyMethod();
-    // .AllowCredentials(); // para usar cookies/autenticacion con credenciales
-  });
+    options.AddPolicy(name: PoliticaAngular, policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:4200",
+                "https://localhost:4200",
+                "https://CamaronServer:9001",
+                "https://camaronserver:9001",
+                "https://losdecamaron-37e07.firebaseapp.com",
+                "https://losdecamaron-37e07.web.app"
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
 
-// Add services to the container.
 
-builder.Services.AddControllers();
+// ==========================================================
+// 4. CORRECCIÓN: CONFIGURACIÓN DE CONTROLADORES Y JSON
+// ==========================================================
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Fuerza a que las propiedades vayan a Angular en camelCase (id, fondoInicial, estaAbierta)
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.DictionaryKeyPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+
+        // EVITA EL BUCLE INFINITO (Referencia Circular) entre modelos de Entity Framework
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
+
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -88,8 +102,8 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-  app.UseSwagger();
-  app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
@@ -100,7 +114,7 @@ var carpetaFotos = @"C:\LosDeCamaron\empleados";
 // 2. Revisamos si existe, y si no, la creamos automáticamente
 if (!Directory.Exists(carpetaFotos))
 {
-  Directory.CreateDirectory(carpetaFotos);
+    Directory.CreateDirectory(carpetaFotos);
 }
 
 app.UseStaticFiles();
@@ -108,8 +122,8 @@ app.UseStaticFiles();
 // 3. Ahora sí, inicializamos el proveedor de archivos con toda seguridad
 app.UseStaticFiles(new StaticFileOptions
 {
-  FileProvider = new PhysicalFileProvider(carpetaFotos),
-  RequestPath = "/fotos-empleados"
+    FileProvider = new PhysicalFileProvider(carpetaFotos),
+    RequestPath = "/fotos-empleados"
 });
 
 app.UseCors(PoliticaAngular);
