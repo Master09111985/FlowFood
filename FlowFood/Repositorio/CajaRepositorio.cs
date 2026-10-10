@@ -66,7 +66,7 @@ namespace FlowFood.Repositorio
             if (usuarioDb == null) return null;
 
             // Verifica que tenga permisos de supervisor
-            if (usuarioDb.Rol.Nombre != "Administrador" && usuarioDb.Rol.Nombre != "Supervisor")
+            if (usuarioDb.Rol.Nombre != "Administrador" && usuarioDb.Rol.Nombre != "Supervisor" && usuarioDb.Rol.Nombre != "Desarrollador" && usuarioDb.Rol.Nombre != "Gerente")
                 return null;
 
             return usuarioDb;
