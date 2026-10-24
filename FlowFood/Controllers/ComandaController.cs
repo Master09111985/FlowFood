@@ -129,7 +129,11 @@ namespace FlowFood.Controllers
         });
       }
 
-      int estatusInicial = (crearDto.TipoPedido == 4) ? 0 : 1;
+            // Esta linea de codigo la conservo por si en el futuro quisieran reactivar el KDS
+            //int estatusInicial = (crearDto.TipoPedido == 4) ? 0 : 1;
+
+            //Con esta linea nos saltamos la cocina y enviar cambiando el utltimo numero de 1 a 2.
+            int estatusInicial = (crearDto.TipoPedido == 4) ? 0 : 2;
 
       var nuevaComanda = new Comanda
       {
@@ -215,7 +219,8 @@ namespace FlowFood.Controllers
       comanda.Total += totalNuevos;
 
       // MAGIA KDS: Regresamos la comanda a "Cocinando" (1) y le subimos la prioridad a 1.
-      comanda.Estatus = 1;
+      //comanda.Estatus = 1;  Esta linea tambien la cambiamos para quitar el KDS
+      comanda.Estatus = 2;
       comanda.Prioridad = 1;
 
       if (!await _coRepo.ActualizarComandaAsync(comanda))
