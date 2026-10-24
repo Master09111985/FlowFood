@@ -256,39 +256,49 @@ namespace FlowFood.Controllers
       return Ok(new { mensaje = "Cuenta cobrada exitosamente." });
     }
 
-    // ==========================================
-    // METODO PRIVADO: Mapeo manual a DTO
-    // ==========================================
-    private ComandaDto MapearComandaDto(Comanda comanda)
-    {
-      return new ComandaDto
-      {
-        Id = comanda.Id,
-        TipoPedido = ObtenerNombreTipoPedido(comanda.TipoPedido),
-        NumeroMesa = comanda.NumeroMesa,
-        PlataformaNombre = comanda.Plataforma?.Nombre,
-        DireccionEntrega = comanda.Cliente?.Direccion, // Asumiendo que Cliente tiene Dirección
-        HoraEntrega = comanda.FechaHoraAgendada,
-        Subtotal = comanda.Subtotal,
-        Total = comanda.Total,
-        FechaRegistro = comanda.FechaRegistro,
-        Estado = ObtenerNombreEstatus(comanda.Estatus),
-        Prioridad = comanda.Prioridad,
-        Detalles = comanda.Detalles?.Select(d => new ComandaDetalleDto
+        // ==========================================
+        // METODO PRIVADO: Mapeo manual a DTO
+        // ==========================================
+        private ComandaDto MapearComandaDto(Comanda comanda)
         {
-          Id = d.Id,
-          PlatilloId = d.PlatilloId,
-          PlatilloNombre = d.Platillo?.Nombre, // Esto funciona gracias al .ThenInclude()
-          Cantidad = d.Cantidad,
-          PrecioUnitario = d.PrecioUnitario,
-          Subtotal = d.Subtotal,
-          Notas = d.Notas,
-          NumeroPlato = d.NumeroPlato // <--- INYECTADO AL RESPONDER A ANGULAR
-        }).ToList() ?? new List<ComandaDetalleDto>()
-      };
-    }
+            return new ComandaDto
+            {
+                Id = comanda.Id,
+                TipoPedido = ObtenerNombreTipoPedido(comanda.TipoPedido),
+                NumeroMesa = comanda.NumeroMesa,
+                NumeroPlato = comanda.NumeroPlato,
+                Prioridad = comanda.Prioridad,
+                PlataformaNombre = comanda.Plataforma?.Nombre,
 
-    private string ObtenerNombreTipoPedido(int tipo) => tipo switch
+                // --- CAMPOS DEL CLIENTE ---
+                NombreClienteLlevar = comanda.NombreClienteLlevar,
+                ClienteNombre = comanda.Cliente?.Nombre,
+                ClienteTelefono = comanda.Cliente?.Telefono,
+                ClienteDireccion = comanda.Cliente?.Direccion,
+                ClienteReferencias = comanda.Cliente?.Referencias,
+                // ----------------------------------
+
+                HoraEntrega = comanda.FechaHoraAgendada,
+                Subtotal = comanda.Subtotal,
+                Total = comanda.Total,
+                FechaRegistro = comanda.FechaRegistro,
+                Estado = ObtenerNombreEstatus(comanda.Estatus),
+
+                Detalles = comanda.Detalles?.Select(d => new ComandaDetalleDto
+                {
+                    Id = d.Id,
+                    NumeroPlato = d.NumeroPlato,
+                    PlatilloId = d.PlatilloId,
+                    PlatilloNombre = d.Platillo?.Nombre,
+                    Cantidad = d.Cantidad,
+                    PrecioUnitario = d.PrecioUnitario,
+                    Subtotal = d.Subtotal,
+                    Notas = d.Notas
+                }).ToList() ?? new List<ComandaDetalleDto>()
+            };
+        }
+
+        private string ObtenerNombreTipoPedido(int tipo) => tipo switch
     {
       1 => "Local",
       2 => "Llevar",

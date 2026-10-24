@@ -7,6 +7,16 @@ using Microsoft.Extensions.FileProviders;
 // AGREGADO: Librería necesaria para configurar el JSON
 using System.Text.Json.Serialization;
 
+// Las versiones en git hub
+
+///////////////////////////////////////////////////////////////////////////////////
+///  La rama funcional de GitHub es: master                                     ///
+///  La rama de prueba para impresion de tickets en tablet es: tickets-tablet   ///
+///////////////////////////////////////////////////////////////////////////////////
+
+
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ==============================
